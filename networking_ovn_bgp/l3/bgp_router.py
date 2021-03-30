@@ -1,6 +1,7 @@
-from enum import Enum
-
 import requests
+
+from enum import Enum
+from requests.auth import HTTPBasicAuth
 
 from neutron_lib.callbacks import events
 from neutron_lib.callbacks import registry
@@ -53,9 +54,11 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         speakers = cfg.CONF.ovn_bgp_speakers
         post_data = {"event": event.value, "ip_address": floating_ip}
         LOG.debug("JSON payload: %s", str(post_data))
-
+        auth = HTTPBasicAuth(cfg.CONF.ovn_bgp_username,
+                             cfg.CONF.ovn_bgp_password)
         for speaker in speakers:
-            response = requests.post(speaker, json=post_data, verify=not cfg.CONF.ovn_bgp_insecure)
+            response = requests.post(speaker, auth=auth, json=post_data,
+                                     verify=not cfg.CONF.ovn_bgp_insecure)
             LOG.debug(response)
 
     def _log_debug_data(self, func, resource, event, trigger, **kwargs):
