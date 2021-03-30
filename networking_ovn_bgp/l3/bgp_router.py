@@ -54,7 +54,7 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         post_data = {"event": event.value, "ip_address": floating_ip}
 
         for speaker in speakers:
-            requests.post(speaker, json=post_data)
+            requests.post(speaker, json=post_data, verify=not cfg.CONF.ovn_bgp_insecure)
 
     def _log_debug_data(self, func, resource, event, trigger, **kwargs):
         LOG.info(func.__name__)
