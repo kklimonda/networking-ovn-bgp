@@ -15,8 +15,8 @@ LOG = log.getLogger(__name__)
 
 
 class NeutronEvent(Enum):
-    ASSOCIATE = "associate"
-    DISSOCIATE = "dissociate"
+    ANNOUNCE = "announce"
+    WITHDRAW = "withdraw"
     UNKNOWN = "unknown"
 
 
@@ -51,7 +51,7 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
 
     def _notify_bgp_speakers(self, floating_ip, event):
         speakers = cfg.CONF.ovn_bgp_speakers
-        post_data = {"event": event.name, "floating_ip_address": floating_ip}
+        post_data = {"event": event.value, "ip_address": floating_ip}
 
         for speaker in speakers:
             requests.post(speaker, json=post_data)
@@ -73,11 +73,11 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
 
         event = NeutronEvent.UNKNOWN
         if router_id and not last_known_router_id:
-            event = NeutronEvent.ASSOCIATE
+            event = NeutronEvent.ANNOUNCE
         elif not router_id and last_known_router_id:
-            event = NeutronEvent.DISSOCIATE
+            event = NeutronEvent.WITHDRAW
 
-        if event == NeutronEvent.ASSOCIATE:
+        if event == NeutronEvent.ANNOUNCE:
             log_action = "attached to"
         else:
             log_action = "detached from"
