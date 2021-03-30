@@ -52,9 +52,11 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
     def _notify_bgp_speakers(self, floating_ip, event):
         speakers = cfg.CONF.ovn_bgp_speakers
         post_data = {"event": event.value, "ip_address": floating_ip}
+        LOG.debug("JSON payload: %s", str(post_data))
 
         for speaker in speakers:
-            requests.post(speaker, json=post_data, verify=not cfg.CONF.ovn_bgp_insecure)
+            response = requests.post(speaker, json=post_data, verify=not cfg.CONF.ovn_bgp_insecure)
+            LOG.debug(response)
 
     def _log_debug_data(self, func, resource, event, trigger, **kwargs):
         LOG.info(func.__name__)
