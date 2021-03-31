@@ -1,6 +1,7 @@
 import requests
 
 from enum import Enum
+from netaddr import IPAddress
 from requests.auth import HTTPBasicAuth
 
 from neutron_lib.callbacks import events
@@ -39,10 +40,10 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
                            events.AFTER_UPDATE)
         registry.subscribe(self.delete_floatingip_postcommit, resources.FLOATING_IP,
                            events.AFTER_DELETE)
-        registry.subscribe(self.update_floatingip_postcommit, resources.ROUTER_INTERFACE,
-                           events.AFTER_UPDATE)
-        registry.subscribe(self.update_floatingip_postcommit, resources.ROUTER_GATEWAY,
-                           events.AFTER_UPDATE)
+        registry.subscribe(self.update_router_gateway_postcommit, resources.ROUTER_GATEWAY,
+                           events.AFTER_CREATE)
+        registry.subscribe(self.update_router_gateway_postcommit, resources.ROUTER_GATEWAY,
+                           events.AFTER_DELETE)
 
     def get_plugin_description(self):
         return "L3 Router Service Plugin for basic OVN-BGP integration"
@@ -68,6 +69,9 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         LOG.info("\ttrigger = %s" % trigger)
         for key, value in kwargs.items():
             LOG.info("\t%s = %s" % (key, value))
+            if key == "payload":
+                for ikey, ivalue in value.metadata.items():
+                    LOG.info("\t\t%s = %s" % (ikey, ivalue))
 
     def update_floatingip_postcommit(self, *args, **kwargs):
         self._log_debug_data(self.update_floatingip_postcommit, *args, **kwargs)
@@ -102,5 +106,27 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
                  floating_ip_adderss)
         self._notify_bgp_speakers(floating_ip_adderss, event)
 
-    def update_router_gateway_postcommit(self, *args, **kwargs):
-        self._log_debug_data(self.update_router_gateway_postcommit, *args, **kwargs)
+    def update_router_gateway_postcommit(self, resource, event, trigger, **kwargs):
+        self._log_debug_data(self.update_router_gateway_postcommit,
+                             resource, event, trigger, **kwargs)
+        # FIXME: gateway_ips can have more than one IP, but it's probably
+        #        used for dual stack routers, so assume there is only one.
+        gateway_ip = None
+        gateway_ips = kwargs["payload"].metadata["gateway_ips"]
+        if len(gateway_ips) > 1:
+            for ip in gateway_ips:
+                if IPAddress(ip).version == 4:
+                    gateway_ip = ip
+                    break
+        else:
+            gateway_ip = gateway_ips[0]
+        if not gateway_ip:
+            LOG.error("Unable to get v4 gateway IP for router, IPs available are: %s" % ", ".join(gateway_ips))
+            return
+
+        if event == "after_create":
+            LOG.info("Router gateway IP %s assigned. Updating BGP speakers" % gateway_ip)
+            self._notify_bgp_speakers(gateway_ip, NeutronEvent.ANNOUNCE)
+        else:
+            LOG.info("Router gateway IP %s removed. Updating BGP speakers" % gateway_ip)
+            self._notify_bgp_speakers(gateway_ip, NeutronEvent.WITHDRAW)
