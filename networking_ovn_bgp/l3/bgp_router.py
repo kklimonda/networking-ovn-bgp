@@ -63,15 +63,15 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
             LOG.debug(response)
 
     def _log_debug_data(self, func, resource, event, trigger, **kwargs):
-        LOG.info(func.__name__)
-        LOG.info("\tresource = %s" % resource)
-        LOG.info("\tevent = %s" % event)
-        LOG.info("\ttrigger = %s" % trigger)
+        LOG.debug(func.__name__)
+        LOG.debug("\tresource = %s" % resource)
+        LOG.debug("\tevent = %s" % event)
+        LOG.debug("\ttrigger = %s" % trigger)
         for key, value in kwargs.items():
-            LOG.info("\t%s = %s" % (key, value))
+            LOG.debug("\t%s = %s" % (key, value))
             if key == "payload":
                 for ikey, ivalue in value.metadata.items():
-                    LOG.info("\t\t%s = %s" % (ikey, ivalue))
+                    LOG.debug("\t\t%s = %s" % (ikey, ivalue))
 
     def update_floatingip_postcommit(self, *args, **kwargs):
         self._log_debug_data(self.update_floatingip_postcommit, *args, **kwargs)
