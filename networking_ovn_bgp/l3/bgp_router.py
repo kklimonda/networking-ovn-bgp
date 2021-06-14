@@ -126,7 +126,7 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
 
         if event == "after_create":
             LOG.info("Router gateway IP %s assigned. Updating BGP speakers" % gateway_ip)
-            self._notify_bgp_speakers(gateway_ip, NeutronEvent.ANNOUNCE)
+            self._notify_bgp_speakers(str(gateway_ip), NeutronEvent.ANNOUNCE)
         else:
             LOG.info("Router gateway IP %s removed. Updating BGP speakers" % gateway_ip)
-            self._notify_bgp_speakers(gateway_ip, NeutronEvent.WITHDRAW)
+            self._notify_bgp_speakers(str(gateway_ip), NeutronEvent.WITHDRAW)
