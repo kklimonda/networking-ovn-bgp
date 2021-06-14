@@ -100,7 +100,7 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         self._log_debug_data(self.delete_floatingip_postcommit, *args, **kwargs)
 
         floating_ip_adderss = kwargs.get("floating_ip_address")
-        event = NeutronEvent.DISSOCIATE
+        event = NeutronEvent.WITHDRAW
 
         LOG.info("Floating IP %s has been deleted. Updating BGP speakers",
                  floating_ip_adderss)
