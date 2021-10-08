@@ -5,4 +5,5 @@ base_opts = [
     cfg.BoolOpt("ovn_bgp_insecure", default=False),
     cfg.StrOpt("ovn_bgp_username", required=True),
     cfg.StrOpt("ovn_bgp_password", required=True),
+    cfg.FloatOpt("ovn_bgp_api_server_timeout", default=2.0)
 ]

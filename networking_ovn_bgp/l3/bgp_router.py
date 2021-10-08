@@ -59,7 +59,8 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
                              cfg.CONF.ovn_bgp_password)
         for speaker in speakers:
             response = requests.post(speaker, auth=auth, json=post_data,
-                                     verify=not cfg.CONF.ovn_bgp_insecure)
+                                     verify=not cfg.CONF.ovn_bgp_insecure,
+                                     timeout=cfg.CONF.ovn_bgp_api_server_timeout)
             LOG.debug(response)
 
     def _log_debug_data(self, func, resource, event, trigger, **kwargs):
