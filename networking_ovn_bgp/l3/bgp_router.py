@@ -80,11 +80,15 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         last_known_router_id = kwargs.get("last_known_router_id", None)
         floating_ip_address = kwargs.get("floating_ip_address")
 
-        event = NeutronEvent.UNKNOWN
         if router_id and not last_known_router_id:
             event = NeutronEvent.ANNOUNCE
         elif not router_id and last_known_router_id:
             event = NeutronEvent.WITHDRAW
+        else:
+            LOG.debug(("Floating IP %s has been created but not attached "
+                       "to any port yet. Not announcing for now"),
+                      floating_ip_address)
+            return
 
         if event == NeutronEvent.ANNOUNCE:
             log_action = "attached to"
