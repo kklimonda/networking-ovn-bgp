@@ -99,7 +99,7 @@ class OVNBGPL3RouterPlugin(service_base.ServicePluginBase):
         LOG.info(("Floating IP %s has been %s a port. "
                   "Updating BGP speakers."),
                  floating_ip_address, log_action)
-        self._notify_bgp_speakers(floating_ip_address, event)
+        self._notify_bgp_speakers(str(floating_ip_address), event)
 
     def delete_floatingip_postcommit(self, *args, **kwargs):
         self._log_debug_data(self.delete_floatingip_postcommit, *args, **kwargs)
